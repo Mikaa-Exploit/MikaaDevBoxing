@@ -1,320 +1,367 @@
--- ============================================
--- [ MIKAADEV FISHING BLOCKER v3.0 ]
--- Real-time invisible wall system
--- Blocks all fishermen from casting
--- ============================================
-
-repeat task.wait() until game:IsLoaded()
-print("[MIKAADEV] Fishing Blocker System Activated!")
+-- MikaaDev Delta Executor v3
+-- TestingDevByMikaa
+-- Each feature has individual ON/OFF button
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 
--- CONTROL VARIABLES
-local blockMode = false
-local blockThread = nil
-local invisibleWalls = {}
-local blockedPlayers = {}
+-- ========== MIKAADEV UI ==========
+local MikaaDevUI = {}
+MikaaDevUI.ToggleKey = Enum.KeyCode.RightShift
 
--- ========== CREATE INVISIBLE WALL ==========
-local function createBlockWall(targetPlayer)
-    if not targetPlayer or not targetPlayer.Character then return nil end
+function MikaaDevUI:Create()
+    local CoreGui = game:GetService("CoreGui")
     
-    local root = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return nil end
-    
-    -- Destroy old wall if exists
-    if invisibleWalls[targetPlayer] then
-        invisibleWalls[targetPlayer]:Destroy()
-        invisibleWalls[targetPlayer] = nil
+    -- Hapus UI lama
+    if CoreGui:FindFirstChild("MikaaDevUI") then
+        CoreGui:FindFirstChild("MikaaDevUI"):Destroy()
     end
     
-    -- Create invisible wall IN FRONT of fisherman
-    local wall = Instance.new("Part")
-    wall.Name = "MIKAADEV_BLOCK_WALL_" .. targetPlayer.Name
-    wall.Size = Vector3.new(15, 20, 2) -- Lebar, tinggi, tipis
-    wall.Transparency = 0.7 -- Semi-transparan biar keliatan
-    wall.Color = Color3.fromRGB(255, 0, 0)
-    wall.Material = Enum.Material.Neon
-    wall.CanCollide = true
-    wall.Anchored = true
-    wall.CastShadow = false
+    -- ScreenGui
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "MikaaDevUI"
+    ScreenGui.Parent = CoreGui
     
-    -- Position wall 5 stud di depan pemancing
-    local lookVector = root.CFrame.LookVector
-    wall.CFrame = root.CFrame * CFrame.new(0, 0, -8) -- DI DEPAN!
+    -- Main Window
+    local Main = Instance.new("Frame")
+    Main.Name = "Main"
+    Main.Size = UDim2.new(0, 300, 0, 350)
+    Main.Position = UDim2.new(0.5, -150, 0.5, -175)
+    Main.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+    Main.BorderColor3 = Color3.fromRGB(0, 100, 255)
+    Main.BorderSizePixel = 2
+    Main.Active = true
+    Main.Draggable = true
+    Main.Parent = ScreenGui
     
-    -- Add warning text
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.AlwaysOnTop = true
-    billboard.Parent = wall
+    -- Header
+    local Header = Instance.new("Frame")
+    Header.Size = UDim2.new(1, 0, 0, 40)
+    Header.BackgroundColor3 = Color3.fromRGB(0, 80, 200)
+    Header.Parent = Main
     
-    local label = Instance.new("TextLabel")
-    label.Text = "🚫 NO FISHING! 🚫"
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.TextColor3 = Color3.fromRGB(255, 50, 50)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBlack
-    label.TextScaled = true
-    label.Parent = billboard
+    -- Logo
+    local Logo = Instance.new("ImageLabel")
+    Logo.Size = UDim2.new(0, 30, 0, 30)
+    Logo.Position = UDim2.new(0, 5, 0, 5)
+    Logo.BackgroundTransparency = 1
+    Logo.Image = "rbxassetid://100166477433523"
+    Logo.Parent = Header
     
-    wall.Parent = workspace
-    invisibleWalls[targetPlayer] = wall
+    -- Title
+    local Title = Instance.new("TextLabel")
+    Title.Text = "MikaaDev Delta"
+    Title.Size = UDim2.new(1, -40, 1, 0)
+    Title.Position = UDim2.new(0, 40, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.TextColor3 = Color3.white
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 16
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
     
-    print("[WALL CREATED] Blocking", targetPlayer.Name)
-    return wall
-end
-
--- ========== DETECT FISHERMEN ==========
-local function detectFishermen()
-    local fishermen = {}
+    -- Subtitle
+    local Subtitle = Instance.new("TextLabel")
+    Subtitle.Text = "TestingDevByMikaa"
+    Subtitle.Size = UDim2.new(1, 0, 0, 15)
+    Subtitle.Position = UDim2.new(0, 0, 0, 40)
+    Subtitle.BackgroundTransparency = 1
+    Subtitle.TextColor3 = Color3.fromRGB(150, 200, 255)
+    Subtitle.Font = Enum.Font.Code
+    Subtitle.TextSize = 10
+    Subtitle.Parent = Main
     
-    for _, target in pairs(Players:GetPlayers()) do
-        if target ~= player and target.Character then
-            -- Cek apakah lagi pegang fishing rod
-            local hasFishingRod = false
-            for _, tool in pairs(target.Character:GetChildren()) do
-                if tool:IsA("Tool") and (
-                    tool.Name:lower():find("rod") or
-                    tool.Name:lower():find("fish") or
-                    tool.Name:lower():find("pole")
-                ) then
-                    hasFishingRod = true
-                    break
-                end
-            end
-            
-            -- Cek di backpack juga
-            if not hasFishingRod and target:FindFirstChild("Backpack") then
-                for _, tool in pairs(target.Backpack:GetChildren()) do
-                    if tool:IsA("Tool") and (
-                        tool.Name:lower():find("rod") or
-                        tool.Name:lower():find("fish")
-                    ) then
-                        hasFishingRod = true
-                        break
-                    end
-                end
-            end
-            
-            if hasFishingRod then
-                table.insert(fishermen, target)
-                blockedPlayers[target] = true
-            end
-        end
-    end
-    
-    return fishermen
-end
-
--- ========== REAL-TIME BLOCK SYSTEM ==========
-local function startBlockSystem()
-    if blockThread then
-        blockMode = false
-        task.wait(0.5)
-    end
-    
-    blockMode = true
-    print("[BLOCK SYSTEM] ACTIVATED - Creating invisible walls!")
-    
-    -- Clear old walls
-    for _, wall in pairs(invisibleWalls) do
-        wall:Destroy()
-    end
-    invisibleWalls = {}
-    blockedPlayers = {}
-    
-    blockThread = task.spawn(function()
-        while blockMode do
-            -- Deteksi semua pemancing
-            local fishermen = detectFishermen()
-            
-            -- Buat wall untuk setiap pemancing
-            for _, fisherman in pairs(fishermen) do
-                if not invisibleWalls[fisherman] then
-                    createBlockWall(fisherman)
-                else
-                    -- Update wall position
-                    local wall = invisibleWalls[fisherman]
-                    local root = fisherman.Character:FindFirstChild("HumanoidRootPart")
-                    if wall and root then
-                        wall.CFrame = root.CFrame * CFrame.new(0, 0, -8)
-                    end
-                end
-            end
-            
-            -- Hapus wall untuk yang udah gabawa rod
-            for target, wall in pairs(invisibleWalls) do
-                if not blockedPlayers[target] then
-                    wall:Destroy()
-                    invisibleWalls[target] = nil
-                    print("[WALL REMOVED]", target.Name)
-                end
-            end
-            
-            blockedPlayers = {}
-            task.wait(0.5) -- Update setiap 0.5 detik
-        end
-        
-        -- Cleanup saat mode dimatikan
-        for _, wall in pairs(invisibleWalls) do
-            wall:Destroy()
-        end
-        invisibleWalls = {}
-        blockedPlayers = {}
-        
-        blockThread = nil
-        print("[BLOCK SYSTEM] DEACTIVATED")
+    -- Close Button
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Text = "X"
+    CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+    CloseBtn.Position = UDim2.new(1, -30, 0, 8)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    CloseBtn.TextColor3 = Color3.white
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
     end)
+    CloseBtn.Parent = Header
+    
+    -- Features Container
+    local Features = Instance.new("ScrollingFrame")
+    Features.Size = UDim2.new(1, -10, 1, -70)
+    Features.Position = UDim2.new(0, 5, 0, 60)
+    Features.BackgroundTransparency = 1
+    Features.ScrollBarThickness = 4
+    Features.ScrollBarImageColor3 = Color3.fromRGB(0, 100, 255)
+    Features.CanvasSize = UDim2.new(0, 0, 0, 400)
+    Features.Parent = Main
+    
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Padding = UDim.new(0, 8)
+    UIListLayout.Parent = Features
+    
+    MikaaDevUI.Main = Features
+    MikaaDevUI.ScreenGui = ScreenGui
+    
+    return Features
 end
 
--- ========== ANTI-CASTING SYSTEM ==========
-local function antiCastingSystem()
-    -- Monitor rod casting attempts
-    local function monitorCasting(target)
-        if not target.Character then return end
+function MikaaDevUI:AddFeature(name, buttonText, callback)
+    local FeatureFrame = Instance.new("Frame")
+    FeatureFrame.Size = UDim2.new(1, 0, 0, 50)
+    FeatureFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+    FeatureFrame.BorderSizePixel = 0
+    
+    -- Feature Name
+    local NameLabel = Instance.new("TextLabel")
+    NameLabel.Text = name
+    NameLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    NameLabel.Position = UDim2.new(0, 5, 0, 0)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.TextColor3 = Color3.fromRGB(200, 230, 255)
+    NameLabel.Font = Enum.Font.Gotham
+    NameLabel.TextSize = 14
+    NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    NameLabel.Parent = FeatureFrame
+    
+    -- ON/OFF Button
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Name = "ToggleBtn"
+    ToggleBtn.Text = buttonText or "OFF"
+    ToggleBtn.Size = UDim2.new(0.35, -10, 0, 30)
+    ToggleBtn.Position = UDim2.new(0.65, 0, 0.5, -15)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0) -- RED = OFF
+    ToggleBtn.TextColor3 = Color3.white
+    ToggleBtn.Font = Enum.Font.GothamBold
+    ToggleBtn.TextSize = 12
+    
+    local isActive = false
+    
+    ToggleBtn.MouseButton1Click:Connect(function()
+        isActive = not isActive
         
-        local humanoid = target.Character:FindFirstChild("Humanoid")
-        if not humanoid then return end
+        if isActive then
+            ToggleBtn.Text = "ON"
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- GREEN = ON
+        else
+            ToggleBtn.Text = "OFF"
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0) -- RED = OFF
+        end
         
-        -- Intercept tool equip
-        target.Character.ChildAdded:Connect(function(tool)
-            if tool:IsA("Tool") and blockMode then
-                -- Force unequip jika ada wall
-                if invisibleWalls[target] then
-                    task.wait(0.1)
-                    humanoid:UnequipTools()
-                    print("[CAST BLOCKED]", target.Name, "tried to equip rod")
+        -- Execute callback
+        if callback then
+            callback(isActive)
+        end
+    end)
+    
+    ToggleBtn.Parent = FeatureFrame
+    FeatureFrame.Parent = MikaaDevUI.Main
+    
+    return FeatureFrame
+end
+
+-- ========== HACK FUNCTIONS ==========
+local Hacks = {
+    Coin = {Active = false, Value = 9999},
+    Damage = {Active = false, Multiplier = 10},
+    Health = {Active = false, Bonus = 500}
+}
+
+-- COIN HACK FUNCTION
+local function CoinHack(enable)
+    Hacks.Coin.Active = enable
+    
+    if enable then
+        spawn(function()
+            while Hacks.Coin.Active do
+                -- Method 1: Direct value modification
+                local playerData = LocalPlayer:FindFirstChild("leaderstats") or 
+                                  LocalPlayer:FindFirstChild("Data") or
+                                  LocalPlayer:FindFirstChild("Stats")
+                
+                if playerData then
+                    local coins = playerData:FindFirstChild("Coins") or 
+                                 playerData:FindFirstChild("Money") or
+                                 playerData:FindFirstChild("Coin")
+                    
+                    if coins and coins:IsA("IntValue") or coins:IsA("NumberValue") then
+                        coins.Value = Hacks.Coin.Value
+                    end
                 end
+                
+                -- Method 2: Try to find coins in workspace
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if (obj.Name:lower():find("coin") or 
+                        obj.Name:lower():find("uang") or 
+                        obj.Name:lower():find("money")) and 
+                       obj:IsA("Part") then
+                        
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 0)
+                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 1)
+                        end
+                    end
+                end
+                
+                wait(0.3)
             end
         end)
     end
-    
-    -- Setup monitoring untuk semua player
-    for _, target in pairs(Players:GetPlayers()) do
-        if target ~= player then
-            monitorCasting(target)
-        end
-    end
-    
-    Players.PlayerAdded:Connect(function(newPlayer)
-        monitorCasting(newPlayer)
-    end)
 end
 
--- ========== SIMPLE GUI ==========
-local gui = Instance.new("ScreenGui")
-gui.Name = "MIKAADEV_BLOCK_GUI"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
-
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.2, 0, 0.15, 0)
-frame.Position = UDim2.new(0.02, 0, 0.02, 0)
-frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-frame.BackgroundTransparency = 0.2
-frame.Parent = gui
-
--- Title
-local title = Instance.new("TextLabel")
-title.Text = "🚫 FISH BLOCKER"
-title.Size = UDim2.new(1, 0, 0.35, 0)
-title.TextColor3 = Color3.fromRGB(255, 50, 100)
-title.Font = Enum.Font.GothamBlack
-title.TextScaled = true
-title.BackgroundTransparency = 1
-title.Parent = frame
-
--- Block button
-local blockBtn = Instance.new("TextButton")
-blockBtn.Name = "BlockButton"
-blockBtn.Text = "🚫 BLOCK: OFF"
-blockBtn.Size = UDim2.new(0.9, 0, 0.45, 0)
-blockBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
-blockBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-blockBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-blockBtn.Font = Enum.Font.GothamBold
-blockBtn.TextScaled = true
-blockBtn.Parent = frame
-
--- Status
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Text = "Walls: 0 | Fishermen: 0"
-statusLabel.Size = UDim2.new(1, 0, 0.2, 0)
-statusLabel.Position = UDim2.new(0, 0, 0.85, 0)
-statusLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
-statusLabel.BackgroundTransparency = 1
-statusLabel.Font = Enum.Font.Gotham
-statusLabel.TextScaled = true
-statusLabel.Parent = frame
-
--- Button handler
-blockBtn.MouseButton1Click:Connect(function()
-    if blockMode then
-        blockMode = false
-        blockBtn.Text = "🚫 BLOCK: OFF"
-        blockBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+-- DAMAGE HACK FUNCTION
+local function DamageHack(enable)
+    Hacks.Damage.Active = enable
+    
+    if enable then
+        -- Hook untuk meningkatkan damage
+        local oldNamecall
+        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            
+            -- Tangkap fungsi damage
+            if method == "FireServer" or method == "InvokeServer" then
+                if tostring(self):find("Damage") or 
+                   tostring(self):find("Hit") or 
+                   tostring(self):find("Attack") then
+                    
+                    -- Multiply damage value
+                    for i, arg in pairs(args) do
+                        if typeof(arg) == "number" and arg > 0 and arg < 1000 then
+                            args[i] = arg * Hacks.Damage.Multiplier
+                        end
+                    end
+                end
+            end
+            
+            return oldNamecall(self, unpack(args))
+        end)
         
-        -- Hapus semua wall
-        for _, wall in pairs(invisibleWalls) do
-            wall:Destroy()
+        -- Juga modifikasi tool damage
+        if LocalPlayer.Character then
+            for _, tool in pairs(LocalPlayer.Character:GetChildren()) do
+                if tool:IsA("Tool") then
+                    local script = tool:FindFirstChildOfClass("Script")
+                    if script then
+                        -- Backup original source
+                        if not script:FindFirstChild("OriginalSource") then
+                            local backup = Instance.new("StringValue")
+                            backup.Name = "OriginalSource"
+                            backup.Value = script.Source
+                            backup.Parent = script
+                        end
+                        
+                        -- Modify damage values
+                        local source = script.Source
+                        source = source:gsub("damage%s*=%s*%d+", "damage = " .. tostring(50 * Hacks.Damage.Multiplier))
+                        source = source:gsub("Damage%s*=%s*%d+", "Damage = " .. tostring(50 * Hacks.Damage.Multiplier))
+                        script.Source = source
+                    end
+                end
+            end
         end
-        invisibleWalls = {}
+    end
+end
+
+-- HEALTH HACK FUNCTION
+local function HealthHack(enable)
+    Hacks.Health.Active = enable
+    
+    if enable then
+        local function ApplyHealthBoost()
+            local character = LocalPlayer.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    -- Increase max health
+                    humanoid.MaxHealth = humanoid.MaxHealth + Hacks.Health.Bonus
+                    humanoid.Health = humanoid.MaxHealth
+                    
+                    -- Auto-regen
+                    humanoid.HealthChanged:Connect(function()
+                        if Hacks.Health.Active and humanoid.Health < humanoid.MaxHealth then
+                            humanoid.Health = humanoid.MaxHealth
+                        end
+                    end)
+                end
+            end
+        end
+        
+        ApplyHealthBoost()
+        
+        -- Re-apply when character respawns
+        LocalPlayer.CharacterAdded:Connect(ApplyHealthBoost)
+    end
+end
+
+-- ========== INITIALIZE ==========
+local FeaturesFrame = MikaaDevUI:Create()
+
+-- ADD FEATURES WITH SEPARATE BUTTONS
+MikaaDevUI:AddFeature("COIN", "OFF", function(state)
+    CoinHack(state)
+end)
+
+MikaaDevUI:AddFeature("DAMAGE", "OFF", function(state)
+    DamageHack(state)
+end)
+
+MikaaDevUI:AddFeature("HEALTH", "OFF", function(state)
+    HealthHack(state)
+end)
+
+MikaaDevUI:AddFeature("SPEED", "OFF", function(state)
+    if state then
+        if LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = 32
+            end
+        end
     else
-        startBlockSystem()
-        blockBtn.Text = "✅ BLOCK: ON"
-        blockBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        if LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = 16
+            end
+        end
     end
 end)
 
--- Start anti-casting system
-antiCastingSystem()
+MikaaDevUI:AddFeature("NO COOLDOWN", "OFF", function(state)
+    if state then
+        spawn(function()
+            while Hacks.CooldownActive do
+                for _, obj in pairs(game:GetDescendants()) do
+                    if obj:IsA("NumberValue") and (obj.Name:find("Cooldown") or obj.Name:find("CD")) then
+                        obj.Value = 0
+                    end
+                end
+                wait(0.5)
+            end
+        end)
+    end
+    Hacks.CooldownActive = state
+end)
 
--- Status update thread
-task.spawn(function()
-    while gui.Parent do
-        local wallCount = 0
-        for _ in pairs(invisibleWalls) do wallCount = wallCount + 1 end
-        
-        local fishermen = detectFishermen()
-        local fisherCount = #fishermen
-        
-        statusLabel.Text = string.format("Walls: %d | Fishermen: %d", wallCount, fisherCount)
-        task.wait(1)
+-- HOTKEY TOGGLE
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == MikaaDevUI.ToggleKey then
+        MikaaDevUI.ScreenGui.Enabled = not MikaaDevUI.ScreenGui.Enabled
     end
 end)
 
--- Auto-create test wall for visualization
-task.wait(2)
-if player.Character then
-    local testWall = Instance.new("Part")
-    testWall.Name = "TEST_WALL_VISUAL"
-    testWall.Size = Vector3.new(10, 10, 1)
-    testWall.Transparency = 0.5
-    testWall.Color = Color3.fromRGB(255, 0, 0)
-    testWall.Material = Enum.Material.Neon
-    testWall.CanCollide = true
-    testWall.Anchored = true
-    testWall.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -10)
-    testWall.Parent = workspace
-    
-    task.wait(3)
-    testWall:Destroy()
-end
+-- NOTIFICATION
+print("===========================================")
+print("MikaaDev Delta Executor v3 Loaded!")
+print("TestingDevByMikaa")
+print("Features: COIN | DAMAGE | HEALTH | SPEED | NO CD")
+print("Press RightShift to toggle UI")
+print("===========================================")
 
-print("[MIKAADEV] ===================================")
-print("[MIKAADEV] FISHING BLOCK SYSTEM READY!")
-print("[MIKAADEV] ")
-print("[MIKAADEV] HOW IT WORKS:")
-print("[MIKAADEV] 1. System detects players with fishing rods")
-print("[MIKAADEV] 2. Creates RED INVISIBLE WALL in front of them")
-print("[MIKAADEV] 3. Wall blocks casting/rod throwing")
-print("[MIKAADEV] 4. Real-time tracking (updates every 0.5s)")
-print("[MIKAADEV] ")
-print("[MIKAADEV] CONTROLS:")
-print("[MIKAADEV] Click 🚫 BLOCK button to toggle")
-print("[MIKAADEV] ===================================")
-print("[MIKAADEV] Expected: Fishermen CANNOT cast rods!")
-print("[MIKAADEV] ===================================")
+-- Welcome message
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "MikaaDev Delta",
+    Text = "Executor Loaded! Press RightShift",
+    Duration = 5
+})
