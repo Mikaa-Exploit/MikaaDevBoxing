@@ -1,447 +1,430 @@
 -- ============================================
--- [ MIKAADEV'S CHAOS BOAT SCRIPT v2.1 - FIXED ]
+-- [ MIKAADEV FISHING CHAOS v3.0 - FIXED ]
 -- Created by: MikaaDev
 -- Platform: Roblox Mobile (Android)
 -- ============================================
 
--- Tunggu game fully load dulu
+-- Wait for game
 repeat task.wait() until game:IsLoaded()
-repeat task.wait() until game.Players.LocalPlayer
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Tunggu karakter load dengan benar
-local character
-local humanoidRootPart
+-- Wait for character properly
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-local function waitForCharacter()
-    repeat 
-        character = player.Character 
-        task.wait(0.5)
-    until character
-    
-    repeat 
-        humanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
-        task.wait(0.5)
-    until humanoidRootPart
-    
-    print("[MIKAADEV] Character loaded successfully!")
-    return true
-end
-
--- Panggil function wait
-if not waitForCharacter() then
-    player.CharacterAdded:Wait()
-    waitForCharacter()
-end
-
--- CONFIGURATION
+-- CONFIG
 local chaosEnabled = false
 local currentTarget = nil
 local chaosBoat = nil
-local teleportBeforeRush = true
+local uiVisible = true
 
--- MIKAADEV OWNER IDENTIFICATION
+-- MIKAADEV CONFIG
 local OWNER_NAME = "MikaaDev"
-local OWNER_VERSION = "v2.1"
-local EXECUTOR_NAME = "OBLIVION"
+local OWNER_VERSION = "v3.0"
 
 print("========================================")
-print("OWNER: " .. OWNER_NAME .. " " .. OWNER_VERSION)
-print("SYSTEM: " .. EXECUTOR_NAME .. " Execution Engine")
-print("========================================")
-print("[MIKAADEV] Chaos Boat System Activated!")
+print("MIKAADEV FISHING CHAOS " .. OWNER_VERSION)
+print("Target: Disrupt fishing players with boat")
 print("========================================")
 
--- ========== MIKAADEV'S BOAT CREATION ==========
-local function createMikaaBoat()
-    if not workspace then 
-        print("[ERROR] Workspace not found!")
-        return nil 
+-- ========== BOAT CREATION ==========
+local function createFishingBoat()
+    if chaosBoat and chaosBoat.Parent then
+        chaosBoat:Destroy()
     end
     
     local boat = Instance.new("Part")
-    boat.Name = "MIKAADEV_CHAOS_BOAT"
-    boat.Size = Vector3.new(16, 6, 32)
+    boat.Name = "MIKAADEV_FISHING_BOAT"
+    boat.Size = Vector3.new(10, 3, 20) -- Smaller for fishing games
     boat.Material = Enum.Material.Neon
-    boat.Color = Color3.fromRGB(255, 100, 0)
+    boat.Color = Color3.fromRGB(255, 0, 0)
     boat.Anchored = false
-    boat.CanCollide = false
-    boat.Transparency = 0.25
+    boat.CanCollide = true -- IMPORTANT: Biar bisa nabrak pemancing
+    boat.Transparency = 0.2
     boat.Parent = workspace
-
-    -- Add MikaaDev tag
-    local tag = Instance.new("BillboardGui")
-    tag.Name = "MikaaTag"
-    tag.Size = UDim2.new(0, 200, 0, 50)
-    tag.AlwaysOnTop = true
-    tag.Parent = boat
     
-    local label = Instance.new("TextLabel")
-    label.Text = "MIKAADEV CHAOS BOAT"
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.TextColor3 = Color3.fromRGB(255, 255, 0)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextScaled = true
-    label.Parent = tag
-
-    -- Premium seat
+    -- Boat model basic
     local seat = Instance.new("Seat")
-    seat.Name = "MikaaSeat"
-    seat.Size = Vector3.new(6, 4, 6)
-    seat.CFrame = boat.CFrame * CFrame.new(0, 4, -10)
+    seat.Size = Vector3.new(4, 2, 4)
+    seat.CFrame = boat.CFrame * CFrame.new(0, 2, -5)
     seat.Parent = boat
-
-    -- Engine effects
-    local engine = Instance.new("Part")
-    engine.Name = "MikaaEngine"
-    engine.Size = Vector3.new(5, 5, 5)
-    engine.Color = Color3.fromRGB(0, 200, 255)
-    engine.Material = Enum.Material.Neon
-    engine.Transparency = 0.3
-    engine.CFrame = boat.CFrame * CFrame.new(0, 0, -18)
-    engine.Parent = boat
     
-    local weld = Instance.new("Weld")
-    weld.Part0 = boat
-    weld.Part1 = engine
-    weld.Parent = engine
-
-    -- Physics
+    -- Velocity for movement
     local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.Name = "MikaaVelocity"
-    bodyVelocity.MaxForce = Vector3.new(60000, 60000, 60000)
+    bodyVelocity.MaxForce = Vector3.new(40000, 40000, 40000)
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = boat
-
+    
+    -- Anti-sink
     local bodyForce = Instance.new("BodyForce")
-    bodyForce.Name = "MikaaLift"
-    bodyForce.Force = Vector3.new(0, boat:GetMass() * workspace.Gravity * 1.8, 0)
+    bodyForce.Force = Vector3.new(0, boat:GetMass() * workspace.Gravity * 1.5, 0)
     bodyForce.Parent = boat
-
-    -- Sound
-    local sound = Instance.new("Sound")
-    sound.Name = "MikaaSound"
-    sound.SoundId = "rbxassetid://735030710"
-    sound.Looped = true
-    sound.Volume = 8
-    sound.Parent = boat
-
-    print("[MIKAADEV] Boat created successfully!")
+    
+    -- Fishing disruption field
+    local disruptField = Instance.new("Part")
+    disruptField.Size = Vector3.new(30, 30, 30)
+    disruptField.Transparency = 1
+    disruptField.CanCollide = false
+    disruptField.Anchored = true
+    disruptField.Parent = boat
+    local weld = Instance.new("Weld")
+    weld.Part0 = boat
+    weld.Part1 = disruptField
+    weld.Parent = disruptField
+    
+    print("[MIKAADEV] Fishing boat created! Get in the seat!")
     return boat
 end
 
--- ========== MIKAADEV TELEPORT SYSTEM ==========
-local function mikaaTeleport(targetPlayer)
-    if not targetPlayer or not targetPlayer.Character then 
-        print("[MIKAADEV] Invalid target!")
-        return false 
+-- ========== GET IN BOAT ==========
+local function getInBoat()
+    if not chaosBoat then return false end
+    
+    local seat = chaosBoat:FindFirstChildWhichIsA("Seat")
+    if seat and character then
+        character:MoveTo(seat.Position)
+        task.wait(0.5)
+        -- Try to sit
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.Sit = true
+        end
+        return true
+    end
+    return false
+end
+
+-- ========== TELEPORT TO FISHERMAN ==========
+local function teleportToFisherman(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then
+        print("[MIKAADEV] Target not found!")
+        return false
+    end
+    
+    if not chaosBoat then
+        print("[MIKAADEV] Create boat first!")
+        return false
+    end
+    
+    -- Cek apakah target lagi mancing
+    local isFishing = false
+    for _, tool in pairs(targetPlayer.Character:GetChildren()) do
+        if tool:IsA("Tool") and (tool.Name:lower():find("rod") or tool.Name:lower():find("fish")) then
+            isFishing = true
+            break
+        end
+    end
+    
+    if not isFishing then
+        print("[MIKAADEV] Target is not fishing!")
     end
     
     local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not targetRoot then 
-        print("[MIKAADEV] Target root not found!")
-        return false 
-    end
-    
-    if chaosBoat then
-        chaosBoat.CFrame = targetRoot.CFrame * CFrame.new(0, 30, 0)
+    if targetRoot then
+        -- Teleport boat DI ATAS target (biar jatuh ke dia)
+        chaosBoat.CFrame = targetRoot.CFrame * CFrame.new(0, 10, 0)
         
-        -- Effect
-        local effect = Instance.new("Explosion")
-        effect.Position = chaosBoat.Position
-        effect.BlastPressure = 0
-        effect.BlastRadius = 25
-        effect.Parent = workspace
+        -- Small explosion effect
+        local exp = Instance.new("Explosion")
+        exp.Position = targetRoot.Position
+        exp.BlastPressure = 0
+        exp.BlastRadius = 10
+        exp.Parent = workspace
         
         print("[MIKAADEV] Teleported to " .. targetPlayer.Name)
         return true
-    else
-        print("[MIKAADEV] No boat found! Create boat first!")
-        return false
     end
+    
+    return false
 end
 
--- ========== MIKAADEV LAUNCH SYSTEM ==========
-local function mikaaLaunch(targetPlayer)
-    if not targetPlayer or not targetPlayer.Character then 
-        print("[MIKAADEV] Invalid target for launch!")
-        return 
-    end
+-- ========== LAUNCH FISHERMAN ==========
+local function launchFisherman(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return false end
     
     local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not targetRoot then 
-        print("[MIKAADEV] Cannot find target root part!")
-        return 
-    end
-    
-    -- SUPER LAUNCH
-    targetRoot.Velocity = Vector3.new(
-        math.random(-40, 40),
-        math.random(300, 450),
-        math.random(-40, 40)
-    )
-    
-    -- Spin madness
-    targetRoot.RotVelocity = Vector3.new(
-        math.random(-40, 40),
-        math.random(-40, 40),
-        math.random(-40, 40)
-    )
-    
-    -- Stun effect
     local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.PlatformStand = true
-        humanoid.WalkSpeed = 0
-        task.delay(4, function() 
-            if humanoid then 
-                humanoid.PlatformStand = false 
-                humanoid.WalkSpeed = 16
-            end 
-        end)
+    
+    if targetRoot then
+        -- BOAT SMASH EFFECT: Boat jatuh ke target
+        if chaosBoat then
+            chaosBoat.CFrame = targetRoot.CFrame * CFrame.new(0, 15, 0)
+            task.wait(0.1)
+            
+            -- Drop boat onto fisherman
+            if chaosBoat:FindFirstChild("BodyVelocity") then
+                chaosBoat.BodyVelocity.Velocity = Vector3.new(0, -100, 0)
+            end
+        end
+        
+        -- LAUNCH FISHERMAN HIGH
+        targetRoot.Velocity = Vector3.new(
+            math.random(-20, 20),
+            math.random(250, 350), -- HIGH LAUNCH
+            math.random(-20, 20)
+        )
+        
+        -- Spin effect
+        targetRoot.RotVelocity = Vector3.new(
+            math.random(-25, 25),
+            math.random(-25, 25),
+            math.random(-25, 25)
+        )
+        
+        -- Stun fisherman
+        if humanoid then
+            humanoid.PlatformStand = true
+            humanoid.WalkSpeed = 0
+            
+            task.delay(5, function()
+                if humanoid then
+                    humanoid.PlatformStand = false
+                    humanoid.WalkSpeed = 16
+                end
+            end)
+        end
+        
+        -- Fishing rod removal (biar gagal mancing)
+        for _, tool in pairs(targetPlayer.Character:GetChildren()) do
+            if tool:IsA("Tool") then
+                tool:Destroy()
+            end
+        end
+        
+        print("[MIKAADEV] LAUNCHED " .. targetPlayer.Name .. " SKY HIGH! 🎣🚀")
+        return true
     end
     
-    -- MikaaDev explosion
-    for i = 1, 3 do
-        local exp = Instance.new("Explosion")
-        exp.Position = targetRoot.Position + Vector3.new(math.random(-10,10), math.random(0,20), math.random(-10,10))
-        exp.BlastPressure = 500
-        exp.BlastRadius = 15
-        exp.Parent = workspace
-        task.wait(0.1)
-    end
-    
-    print("[MIKAADEV] LAUNCHED " .. targetPlayer.Name .. " TO SPACE! 🚀")
+    return false
 end
 
--- ========== MIKAADEV CHAOS ROUTINE ==========
-local function mikaaChaosRoutine()
+-- ========== FISHING CHAOS ROUTINE ==========
+local function fishingChaosRoutine()
     while chaosEnabled and currentTarget do
-        task.wait(0.6)
+        task.wait(0.5)
         
-        if not currentTarget or not currentTarget.Character then
-            print("[MIKAADEV] Target lost, stopping chaos!")
+        if not currentTarget.Character then
+            print("[MIKAADEV] Target left, stopping chaos!")
             chaosEnabled = false
             break
         end
         
-        -- Teleport dulu kalo enabled
-        if teleportBeforeRush then
-            mikaaTeleport(currentTarget)
-            task.wait(0.3)
-        end
+        -- 1. Teleport to fisherman
+        teleportToFisherman(currentTarget)
+        task.wait(0.3)
         
-        -- LAUNCH!
-        mikaaLaunch(currentTarget)
+        -- 2. Launch fisherman
+        launchFisherman(currentTarget)
+        task.wait(0.5)
         
-        -- Chase setelah launch
+        -- 3. Boat chase after launch
         if chaosBoat and currentTarget.Character then
             local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
-            if targetRoot and chaosBoat:FindFirstChild("MikaaVelocity") then
+            if targetRoot and chaosBoat:FindFirstChild("BodyVelocity") then
+                -- Chase the launched fisherman
                 local direction = (targetRoot.Position - chaosBoat.Position).Unit
-                chaosBoat.MikaaVelocity.Velocity = direction * 120 + Vector3.new(0, 15, 0)
-                
-                -- Cool rotation
-                chaosBoat.CFrame = chaosBoat.CFrame * CFrame.fromEulerAnglesXYZ(
-                    math.rad(5),
-                    math.rad(15),
-                    math.rad(5)
-                )
+                chaosBoat.BodyVelocity.Velocity = direction * 80
             end
         end
         
-        task.wait(1.8)
+        task.wait(2) -- Delay between attacks
     end
 end
 
--- ========== CREATE GUI ==========
-local function createMikaaGUI()
-    -- Cek PlayerGui dulu
-    local playerGui = player:FindFirstChild("PlayerGui")
-    if not playerGui then
-        repeat 
-            playerGui = player:WaitForChild("PlayerGui", 5) 
-            task.wait(0.5)
-        until playerGui
-    end
-    
-    local mikaaGui = Instance.new("ScreenGui")
-    mikaaGui.Name = "MIKAADEV_CONTROL_PANEL"
-    mikaaGui.Parent = playerGui
+-- ========== MINI GUI ==========
+local miniGui = Instance.new("ScreenGui")
+miniGui.Name = "MIKAADEV_MINI_UI"
+miniGui.Parent = player:WaitForChild("PlayerGui")
 
-    -- Main panel
-    local mainPanel = Instance.new("Frame")
-    mainPanel.Name = "MikaaMainPanel"
-    mainPanel.Size = UDim2.new(0.9, 0, 0.75, 0)
-    mainPanel.Position = UDim2.new(0.05, 0, 0.12, 0)
-    mainPanel.BackgroundColor3 = Color3.fromRGB(20, 10, 0)
-    mainPanel.BackgroundTransparency = 0.15
-    mainPanel.Parent = mikaaGui
+-- Toggle button (⛔)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleUI"
+toggleBtn.Text = "⛔"
+toggleBtn.Size = UDim2.new(0, 50, 0, 50)
+toggleBtn.Position = UDim2.new(0, 10, 0.5, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Font = Enum.Font.GothamBlack
+toggleBtn.TextSize = 24
+toggleBtn.ZIndex = 10
+toggleBtn.Parent = miniGui
 
-    -- Header
-    local header = Instance.new("TextLabel")
-    header.Name = "MikaaHeader"
-    header.Text = "🔥 MIKAADEV CHAOS CONTROL 🔥"
-    header.Size = UDim2.new(1, 0, 0.15, 0)
-    header.TextColor3 = Color3.fromRGB(255, 150, 0)
-    header.Font = Enum.Font.GothamBlack
-    header.TextScaled = true
-    header.BackgroundTransparency = 1
-    header.Parent = mainPanel
+-- Main UI (hidden by default)
+local mainUI = Instance.new("Frame")
+mainUI.Name = "MainUI"
+mainUI.Size = UDim2.new(0.3, 0, 0.5, 0)
+mainUI.Position = UDim2.new(0, 70, 0.25, 0)
+mainUI.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainUI.BackgroundTransparency = 0.2
+mainUI.Visible = true
+mainUI.Parent = miniGui
 
-    -- Subtitle
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "MikaaSubtitle"
-    subtitle.Text = "Teleport | Launch | Destroy | Version " .. OWNER_VERSION
-    subtitle.Size = UDim2.new(1, 0, 0.08, 0)
-    subtitle.Position = UDim2.new(0, 0, 0.15, 0)
-    subtitle.TextColor3 = Color3.fromRGB(200, 200, 0)
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.TextScaled = true
-    subtitle.BackgroundTransparency = 1
-    subtitle.Parent = mainPanel
-
-    -- Player list
-    local playerList = Instance.new("ScrollingFrame")
-    playerList.Name = "MikaaPlayerList"
-    playerList.Size = UDim2.new(0.9, 0, 0.4, 0)
-    playerList.Position = UDim2.new(0.05, 0, 0.25, 0)
-    playerList.BackgroundColor3 = Color3.fromRGB(30, 20, 10)
-    playerList.Parent = mainPanel
-
-    local function updateMikaaList()
-        playerList:ClearAllChildren()
-        
-        local yOffset = 0
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= player then
-                local playerBtn = Instance.new("TextButton")
-                playerBtn.Name = "Btn_" .. plr.Name
-                playerBtn.Text = "🎯 " .. plr.Name .. " [TARGET]"
-                playerBtn.Size = UDim2.new(0.9, 0, 0, 45)
-                playerBtn.Position = UDim2.new(0.05, 0, 0, yOffset)
-                playerBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 20)
-                playerBtn.TextColor3 = Color3.fromRGB(255, 200, 100)
-                playerBtn.Font = Enum.Font.GothamBold
-                playerBtn.TextScaled = true
-                
-                playerBtn.MouseButton1Click:Connect(function()
-                    currentTarget = plr
-                    print("[MIKAADEV] Target selected: " .. plr.Name)
-                end)
-                
-                playerBtn.Parent = playerList
-                yOffset = yOffset + 50
-            end
-        end
-        playerList.CanvasSize = UDim2.new(0, 0, 0, yOffset)
-    end
-
-    -- Control buttons
-    local buttons = {
-        {name = "TELEPORT_BTN", text = "🚀 TELEPORT TO TARGET", pos = 0.67, color = Color3.fromRGB(0, 100, 255), func = function()
-            if currentTarget then
-                mikaaTeleport(currentTarget)
-            else
-                print("[MIKAADEV] Select a target first!")
-            end
-        end},
-        
-        {name = "RUSH_BTN", text = "⚡ AUTO RUSH: OFF", pos = 0.77, color = Color3.fromRGB(255, 50, 50), func = function()
-            chaosEnabled = not chaosEnabled
-            local btn = mainPanel:FindFirstChild("RUSH_BTN")
-            if btn then
-                if chaosEnabled then
-                    if not currentTarget then
-                        print("[MIKAADEV] Select a target first!")
-                        chaosEnabled = false
-                        return
-                    end
-                    
-                    btn.Text = "🔥 AUTO RUSH: ON"
-                    btn.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
-                    
-                    if not chaosBoat then
-                        chaosBoat = createMikaaBoat()
-                        if chaosBoat then
-                            chaosBoat.CFrame = humanoidRootPart.CFrame * CFrame.new(0, -3, -20)
-                        end
-                    end
-                    
-                    task.spawn(mikaaChaosRoutine)
-                else
-                    btn.Text = "⚡ AUTO RUSH: OFF"
-                    btn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-                end
-            end
-        end},
-        
-        {name = "BOAT_BTN", text = "🚤 CREATE BOAT", pos = 0.87, color = Color3.fromRGB(150, 0, 200), func = function()
-            if chaosBoat then 
-                chaosBoat:Destroy() 
-                print("[MIKAADEV] Old boat destroyed!")
-            end
-            
-            chaosBoat = createMikaaBoat()
-            if chaosBoat and humanoidRootPart then
-                chaosBoat.CFrame = humanoidRootPart.CFrame * CFrame.new(0, -3, -20)
-                print("[MIKAADEV] Chaos boat deployed!")
-            else
-                print("[MIKAADEV] Failed to create boat!")
-            end
-        end}
-    }
-
-    for _, btnData in ipairs(buttons) do
-        local btn = Instance.new("TextButton")
-        btn.Name = btnData.name
-        btn.Text = btnData.text
-        btn.Size = UDim2.new(0.8, 0, 0.08, 0)
-        btn.Position = UDim2.new(0.1, 0, btnData.pos, 0)
-        btn.BackgroundColor3 = btnData.color
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.Font = Enum.Font.GothamBold
-        btn.TextScaled = true
-        btn.Parent = mainPanel
-        
-        btn.MouseButton1Click:Connect(btnData.func)
-    end
-
-    -- Auto refresh
-    coroutine.wrap(function()
-        while mikaaGui.Parent do
-            updateMikaaList()
-            task.wait(4)
-        end
-    end)()
-
-    print("[MIKAADEV] Control panel loaded successfully!")
-    return mikaaGui
-end
-
--- ========== MAIN EXECUTION ==========
--- Tunggu sebentar biar game stabil
-task.wait(2)
-
--- Buat GUI
-local success, errorMsg = pcall(function()
-    createMikaaGUI()
+-- UI toggle function
+toggleBtn.MouseButton1Click:Connect(function()
+    uiVisible = not uiVisible
+    mainUI.Visible = uiVisible
+    toggleBtn.Text = uiVisible and "⛔" or "✅"
 end)
 
-if not success then
-    print("[ERROR] Failed to create GUI: " .. tostring(errorMsg))
-    print("[MIKAADEV] Retrying in 3 seconds...")
-    task.wait(3)
-    pcall(createMikaaGUI)
+-- Header
+local header = Instance.new("TextLabel")
+header.Text = "🎣 MIKAADEV 🚤"
+header.Size = UDim2.new(1, 0, 0.15, 0)
+header.TextColor3 = Color3.fromRGB(255, 100, 0)
+header.Font = Enum.Font.GothamBlack
+header.TextScaled = true
+header.BackgroundTransparency = 1
+header.Parent = mainUI
+
+-- Player list (compact)
+local playerList = Instance.new("ScrollingFrame")
+playerList.Size = UDim2.new(0.9, 0, 0.4, 0)
+playerList.Position = UDim2.new(0.05, 0, 0.2, 0)
+playerList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+playerList.Parent = mainUI
+
+local function updatePlayerList()
+    playerList:ClearAllChildren()
+    
+    local yOffset = 0
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then
+            local btn = Instance.new("TextButton")
+            btn.Text = "🎯 " .. plr.Name
+            btn.Size = UDim2.new(0.9, 0, 0, 30)
+            btn.Position = UDim2.new(0.05, 0, 0, yOffset)
+            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Font = Enum.Font.Gotham
+            btn.TextScaled = true
+            
+            btn.MouseButton1Click:Connect(function()
+                currentTarget = plr
+                print("[MIKAADEV] Target: " .. plr.Name)
+            end)
+            
+            btn.Parent = playerList
+            yOffset = yOffset + 35
+        end
+    end
+    playerList.CanvasSize = UDim2.new(0, 0, 0, yOffset)
 end
 
-print("[MIKAADEV] System ready! Select target and press buttons!")
-print("[MIKAADEV] Instructions:")
-print("1. Select target from list")
-print("2. Press CREATE BOAT")
-print("3. Press TELEPORT TO TARGET (optional)")
-print("4. Press AUTO RUSH: ON")
-print("========================================")
+-- Compact buttons
+local buttons = {
+    {text = "🚤 GET BOAT", func = function()
+        chaosBoat = createFishingBoat()
+        if humanoidRootPart then
+            chaosBoat.CFrame = humanoidRootPart.CFrame * CFrame.new(0, -2, -10)
+        end
+        getInBoat()
+    end},
+    
+    {text = "🎣 GET IN BOAT", func = function()
+        if getInBoat() then
+            print("[MIKAADEV] In boat seat!")
+        else
+            print("[MIKAADEV] No boat or seat!")
+        end
+    end},
+    
+    {text = "🚀 TP TO TARGET", func = function()
+        if currentTarget then
+            teleportToFisherman(currentTarget)
+        else
+            print("[MIKAADEV] Select target first!")
+        end
+    end},
+    
+    {text = "⚡ RUSH: OFF", func = function(btn)
+        chaosEnabled = not chaosEnabled
+        
+        if chaosEnabled then
+            if not currentTarget then
+                print("[MIKAADEV] Select target first!")
+                chaosEnabled = false
+                return
+            end
+            
+            if not chaosBoat then
+                print("[MIKAADEV] Create boat first!")
+                chaosEnabled = false
+                return
+            end
+            
+            btn.Text = "🔥 RUSH: ON"
+            btn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+            
+            -- Start chaos routine
+            task.spawn(fishingChaosRoutine)
+        else
+            btn.Text = "⚡ RUSH: OFF"
+            btn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
+    end}
+}
+
+local yPos = 0.65
+for i, btnData in ipairs(buttons) do
+    local btn = Instance.new("TextButton")
+    btn.Text = btnData.text
+    btn.Size = UDim2.new(0.9, 0, 0.08, 0)
+    btn.Position = UDim2.new(0.05, 0, yPos, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextScaled = true
+    btn.Parent = mainUI
+    
+    if i == 4 then -- Rush button needs self reference
+        btn.MouseButton1Click:Connect(function()
+            btnData.func(btn)
+        end)
+    else
+        btn.MouseButton1Click:Connect(btnData.func)
+    end
+    
+    yPos = yPos + 0.1
+end
+
+-- Auto update player list
+coroutine.wrap(function()
+    while miniGui.Parent do
+        updatePlayerList()
+        task.wait(3)
+    end
+end)()
+
+-- Status display
+local status = Instance.new("TextLabel")
+status.Text = "Ready | Target: None"
+status.Size = UDim2.new(1, 0, 0.08, 0)
+status.Position = UDim2.new(0, 0, 0.95, 0)
+status.TextColor3 = Color3.fromRGB(0, 255, 0)
+status.BackgroundTransparency = 1
+status.Font = Enum.Font.Gotham
+status.Parent = mainUI
+
+-- Update status
+coroutine.wrap(function()
+    while miniGui.Parent do
+        local targetText = currentTarget and currentTarget.Name or "None"
+        local boatText = chaosBoat and "Boat: ✅" or "Boat: ❌"
+        status.Text = "Target: " .. targetText .. " | " .. boatText
+        task.wait(1)
+    end
+end)()
+
+print("[MIKAADEV] =================================")
+print("[MIKAADEV] FISHING CHAOS SYSTEM LOADED!")
+print("[MIKAADEV] Workflow:")
+print("[MIKAADEV] 1. Select fishing target")
+print("[MIKAADEV] 2. Press GET BOAT")
+print("[MIKAADEV] 3. Press GET IN BOAT (optional)")
+print("[MIKAADEV] 4. Press TP TO TARGET")
+print("[MIKAADEV] 5. Press RUSH: ON")
+print("[MIKAADEV] =================================")
+print("[MIKAADEV] UI toggle: Click ⛔ button")
+print("[MIKAADEV] =================================")
