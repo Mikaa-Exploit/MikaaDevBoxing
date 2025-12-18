@@ -91,8 +91,8 @@ StatusLabel.Parent = MainPanel
 -- VARIABEL YANG BISA DIUBAH (EDIT DISINI)
 -- ============================================
 -- ============ EDIT NILAI DI BAWAH INI ============
-local DAMAGE_MULTIPLIER = 100     -- Ubah angka ini untuk perkalian damage (contoh: 1000 = 1000x damage)
-local DAMAGE_VALUE = 80          -- Ubah angka ini untuk damage tetap (contoh: 9999 = langsung kill)
+local DAMAGE_MULTIPLIER = 200     -- Ubah angka ini untuk perkalian damage (contoh: 1000 = 1000x damage)
+local DAMAGE_VALUE = 100          -- Ubah angka ini untuk damage tetap (contoh: 9999 = langsung kill)
 local AUTO_ATTACK = false          -- true/false untuk auto attack musuh
 -- =============================================
 
