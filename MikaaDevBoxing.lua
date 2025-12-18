@@ -106,7 +106,7 @@ local ActiveConnections = {}
 
 -- Damage Ringan Tapi Terasa
 local BASE_DAMAGE = 80        -- Damage dasar
-local DAMAGE_MULTIPLIER = 8   -- 8x multiplier (ringan)
+local DAMAGE_MULTIPLIER = 10   -- 8x multiplier (ringan)
 local PACKET_DELAY = 0.3      -- Delay antar packet (cegah spam)
 
 -- ============================================
