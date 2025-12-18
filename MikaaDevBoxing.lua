@@ -1,16 +1,7 @@
---[[
-  ██████╗░██╗░░░██╗  ███╗░░░███╗██╗██╗░░██╗░█████╗░░█████╗░██████╗░██╗░░░██╗
-  ██╔══██╗╚██╗░██╔╝  ████╗░████║██║██║░██╔╝██╔══██╗██╔══██╗██╔══██╗██║░░░██║
-  ██████╦╝░╚████╔╝░  ██╔████╔██║██║█████═╝░██║░░██║██║░░██║██║░░██║██║░░░██║
-  ██╔══██╗░░╚██╔╝░░  ██║╚██╔╝██║██║██╔═██╗░██║░░██║██║░░██║██║░░██║██║░░░██║
-  ██████╦╝░░░██║░░░  ██║░╚═╝░██║██║██║░╚██╗╚█████╔╝╚█████╔╝██████╔╝╚██████╔╝
-  ╚═════╝░░░░╚═╝░░░  ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚═╝░╚════╝░░╚════╝░╚═════╝░░╚═════╝░
-  
-  Server-Side Penetration Damage Hack
-  Encrypted Owner: [ENCRYPTED:0x7B4D694B6161]
-  
-  WARNING: This script uses advanced penetration techniques
-]]
+-- ============================================
+-- LIGHT SERVER 
+-- By Mikaa | Ambil Code? Silahkan :)
+-- ============================================
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -19,386 +10,254 @@ local RunService = game:GetService("RunService")
 
 -- Cleanup
 for _, gui in pairs(CoreGui:GetChildren()) do
-    if gui.Name == "PenetrationHack" then
+    if gui.Name == "LightDamageUI" then
         gui:Destroy()
     end
 end
 
 -- ============================================
--- ENCRYPTED UI SYSTEM
+-- SIMPLE TOGGLE UI (Logo Kecil)
 -- ============================================
-local PenetrationUI = Instance.new("ScreenGui")
-PenetrationUI.Name = "PenetrationHack"
-PenetrationUI.Parent = CoreGui
+local MainUI = Instance.new("ScreenGui")
+MainUI.Name = "LightDamageUI"
+MainUI.Parent = CoreGui
 
--- Decrypted UI Elements
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 280, 0, 180)
-MainFrame.Position = UDim2.new(0.5, -140, 0.5, -90)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-MainFrame.BackgroundTransparency = 0.1
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = PenetrationUI
+-- Logo Toggle Kecil (Pojok Kiri Atas)
+local LogoBtn = Instance.new("TextButton")
+LogoBtn.Size = UDim2.new(0, 50, 0, 50)
+LogoBtn.Position = UDim2.new(0, 10, 0, 10)
+LogoBtn.Text = "🔴"
+LogoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+LogoBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+LogoBtn.Font = Enum.Font.GothamBold
+LogoBtn.TextSize = 24
+LogoBtn.ZIndex = 100
+LogoBtn.Parent = MainUI
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 15)
-UICorner.Parent = MainFrame
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(1, 0)
+LogoCorner.Parent = LogoBtn
 
--- Title with encrypted owner
+-- Main Panel (Sembunyi Awal)
+local MainPanel = Instance.new("Frame")
+MainPanel.Size = UDim2.new(0, 220, 0, 160)
+MainPanel.Position = UDim2.new(0, 10, 0, 70)
+MainPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainPanel.BackgroundTransparency = 0.05
+MainPanel.BorderSizePixel = 0
+MainPanel.Visible = false
+MainPanel.Parent = MainUI
+
+local PanelCorner = Instance.new("UICorner")
+PanelCorner.CornerRadius = UDim.new(0, 10)
+PanelCorner.Parent = MainPanel
+
+-- Title
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "SERVER PENETRATION v3.0"
-Title.TextColor3 = Color3.fromRGB(255, 40, 40)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Text = "LIGHT DAMAGE HACK"
+Title.TextColor3 = Color3.fromRGB(255, 150, 50)
 Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.GothamBlack
-Title.TextSize = 18
-Title.Parent = MainFrame
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.Parent = MainPanel
 
 local OwnerLabel = Instance.new("TextLabel")
 OwnerLabel.Size = UDim2.new(1, 0, 0, 20)
-OwnerLabel.Position = UDim2.new(0, 0, 0, 35)
-OwnerLabel.Text = "OWNER: ████████████"
+OwnerLabel.Position = UDim2.new(0, 0, 0, 25)
+OwnerLabel.Text = "By: Mikaa"
 OwnerLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
 OwnerLabel.BackgroundTransparency = 1
 OwnerLabel.Font = Enum.Font.Gotham
 OwnerLabel.TextSize = 12
-OwnerLabel.Parent = MainFrame
+OwnerLabel.Parent = MainPanel
 
 -- Damage Toggle
-local DamageToggle = Instance.new("TextButton")
-DamageToggle.Size = UDim2.new(0.8, 0, 0, 60)
-DamageToggle.Position = UDim2.new(0.1, 0, 0, 70)
-DamageToggle.Text = "🔴 DAMAGE: OFF"
-DamageToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-DamageToggle.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
-DamageToggle.Font = Enum.Font.GothamBold
-DamageToggle.TextSize = 18
-DamageToggle.Parent = MainFrame
+local DamageBtn = Instance.new("TextButton")
+DamageBtn.Size = UDim2.new(0.85, 0, 0, 50)
+DamageBtn.Position = UDim2.new(0.075, 0, 0, 60)
+DamageBtn.Text = "⚡ DAMAGE: OFF"
+DamageBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+DamageBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+DamageBtn.Font = Enum.Font.GothamBold
+DamageBtn.TextSize = 16
+DamageBtn.Parent = MainPanel
 
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 10)
-ToggleCorner.Parent = DamageToggle
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 8)
+BtnCorner.Parent = DamageBtn
 
 -- Status
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Size = UDim2.new(1, 0, 0, 30)
-StatusLabel.Position = UDim2.new(0, 0, 0, 140)
-StatusLabel.Text = "🟢 SYSTEM READY"
-StatusLabel.TextColor3 = Color3.fromRGB(40, 255, 40)
+StatusLabel.Position = UDim2.new(0, 0, 0, 120)
+StatusLabel.Text = "🟢 READY"
+StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.Font = Enum.Font.GothamBold
 StatusLabel.TextSize = 14
-StatusLabel.Parent = MainFrame
+StatusLabel.Parent = MainPanel
 
 -- ============================================
--- ADVANCED PENETRATION SETTINGS
+-- LIGHT DAMAGE SETTINGS
 -- ============================================
-local PENETRATION_ACTIVE = false
-local PENETRATION_CONNECTIONS = {}
+local DamageActive = false
+local ActiveConnections = {}
 
--- Encrypted damage values
-local BASE_DAMAGE = 150
-local DAMAGE_MULTIPLIER = 15
-
--- ============================================
--- LEVEL 1: PACKET SIGNATURE SPOOFING
--- ============================================
-local function SpoofPacketSignature()
-    local success, mt = pcall(getrawmetatable, game)
-    if not success then return false end
-    
-    local originalNamecall
-    local originalIndex
-    
-    pcall(function()
-        originalNamecall = mt.__namecall
-        originalIndex = mt.__index
-    end)
-    
-    if not originalNamecall then return false end
-    
-    -- Spoof all outgoing packets
-    setreadonly(mt, false)
-    
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        
-        if method == "FireServer" then
-            local args = {...}
-            local remoteName = tostring(self)
-            
-            -- Inject modified damage into ALL packets
-            for i, arg in pairs(args) do
-                if type(arg) == "number" and arg > 0 and arg < 1000 then
-                    -- Apply damage multiplier with random variance
-                    local variance = math.random(80, 120) / 100
-                    args[i] = math.floor(arg * DAMAGE_MULTIPLIER * variance)
-                end
-            end
-            
-            -- Add additional damage argument
-            table.insert(args, BASE_DAMAGE * DAMAGE_MULTIPLIER)
-            
-            -- Spoof packet with original signature
-            setnamecallmethod("FireServer")
-            return originalNamecall(self, unpack(args))
-        end
-        
-        return originalNamecall(self, ...)
-    end)
-    
-    setreadonly(mt, true)
-    return true
-end
+-- Damage Ringan Tapi Terasa
+local BASE_DAMAGE = 80        -- Damage dasar
+local DAMAGE_MULTIPLIER = 8   -- 8x multiplier (ringan)
+local PACKET_DELAY = 0.3      -- Delay antar packet (cegah spam)
 
 -- ============================================
--- LEVEL 2: SERVER VALIDATION BYPASS
+-- LIGHT PENETRATION METHOD (No FPS Drop)
 -- ============================================
-local function BypassServerValidation()
-    -- Method 2A: Memory Pattern Injection
-    local function InjectMemoryPattern()
-        local patterns = {
-            "damage",
-            "Damage",
-            "DAMAGE",
-            "hit",
-            "Hit",
-            "HIT",
-            "attack",
-            "Attack",
-            "ATTACK"
-        }
-        
-        for _, obj in pairs(game:GetDescendants()) do
-            if obj:IsA("ModuleScript") then
-                pcall(function()
-                    local source = obj.Source
-                    for _, pattern in pairs(patterns) do
-                        if source:find(pattern) then
-                            -- Inject damage multiplier into module
-                            source = source:gsub("(%d+)", function(num)
-                                if tonumber(num) and tonumber(num) > 0 and tonumber(num) < 1000 then
-                                    return tostring(tonumber(num) * DAMAGE_MULTIPLIER)
-                                end
-                                return num
-                            end)
-                            obj.Source = source
-                            break
-                        end
-                    end
-                end)
+local function LightPacketModification()
+    -- Method 1: Simple Remote Hook
+    local hookedRemotes = {}
+    
+    -- Cari remote damage yang ada
+    local damageRemotes = {}
+    for _, remote in pairs(game:GetDescendants()) do
+        if remote:IsA("RemoteEvent") then
+            local name = remote.Name:lower()
+            if name:find("damage") or name:find("hit") or name:find("attack") then
+                table.insert(damageRemotes, remote)
             end
         end
     end
     
-    -- Method 2B: Network Packet Replay
-    local function NetworkPacketReplay()
-        PENETRATION_CONNECTIONS.PacketReplay = RunService.Heartbeat:Connect(function()
-            pcall(function()
-                -- Collect all remotes
-                local remotes = {}
-                for _, remote in pairs(game:GetDescendants()) do
-                    if remote:IsA("RemoteEvent") then
-                        table.insert(remotes, remote)
+    -- Jika tidak ada, gunakan remote umum
+    if #damageRemotes == 0 then
+        for _, remote in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+            if remote:IsA("RemoteEvent") then
+                table.insert(damageRemotes, remote)
+            end
+        end
+    end
+    
+    -- Hook remotes dengan cara ringan
+    for _, remote in pairs(damageRemotes) do
+        if not hookedRemotes[remote] then
+            local originalFire = remote.FireServer
+            hookedRemotes[remote] = originalFire
+            
+            remote.FireServer = function(self, ...)
+                local args = {...}
+                
+                -- Modifikasi damage dengan ringan
+                for i, arg in pairs(args) do
+                    if type(arg) == "number" then
+                        if arg > 0 and arg < 500 then
+                            args[i] = arg * DAMAGE_MULTIPLIER
+                        end
                     end
                 end
                 
-                -- Replay modified packets
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character then
-                        for _, remote in pairs(remotes) do
-                            -- Send multiple packet variations
-                            for i = 1, 3 do
+                return originalFire(self, unpack(args))
+            end
+        end
+    end
+    
+    -- Return cleanup function
+    return function()
+        for remote, original in pairs(hookedRemotes) do
+            remote.FireServer = original
+        end
+    end
+end
+
+local function EnableLightDamage()
+    if DamageActive then return end
+    
+    DamageActive = true
+    DamageBtn.Text = "⚡ DAMAGE: ON"
+    DamageBtn.BackgroundColor3 = Color3.fromRGB(60, 220, 60)
+    StatusLabel.Text = "🟢 ACTIVE"
+    StatusLabel.TextColor3 = Color3.fromRGB(60, 220, 60)
+    LogoBtn.Text = "🟢"
+    LogoBtn.BackgroundColor3 = Color3.fromRGB(60, 220, 60)
+    
+    print("[LIGHT DAMAGE] Activating...")
+    print("Damage: " .. BASE_DAMAGE .. " × " .. DAMAGE_MULTIPLIER .. "x")
+    
+    -- 1. Aktifkan packet modification
+    local cleanupRemotes = LightPacketModification()
+    
+    -- 2. Light damage loop (tanpa FPS drop)
+    ActiveConnections.DamageLoop = RunService.Heartbeat:Connect(function()
+        if not DamageActive then return end
+        
+        -- Delay untuk cegah FPS drop
+        wait(PACKET_DELAY)
+        
+        pcall(function()
+            -- Kirim damage ke musuh terdekat saja (lebih efisien)
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    local humanoid = player.Character:FindFirstChild("Humanoid")
+                    if humanoid and humanoid.Health > 0 then
+                        -- Damage ringan tapi konsisten
+                        local damageAmount = BASE_DAMAGE * DAMAGE_MULTIPLIER
+                        
+                        -- Kirim melalui remote yang ada
+                        for _, remote in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+                            if remote:IsA("RemoteEvent") then
                                 pcall(function()
-                                    remote:FireServer(player.Character, BASE_DAMAGE * i)
-                                    remote:FireServer("Damage", BASE_DAMAGE * DAMAGE_MULTIPLIER)
-                                    remote:FireServer(math.random(100, 500) * DAMAGE_MULTIPLIER)
+                                    remote:FireServer(player.Character, damageAmount)
                                 end)
+                                break -- Hanya 1 remote per frame
                             end
                         end
+                        
+                        break -- Hanya 1 musuh per frame
                     end
                 end
-            end)
-        end)
-    end
-    
-    InjectMemoryPattern()
-    NetworkPacketReplay()
-    return true
-end
-
--- ============================================
--- LEVEL 3: ANTI-ANTICHEAT EVASION
--- ============================================
-local function EvadeAntiCheat()
-    -- Method 3A: Random Delay Injection
-    local function RandomDelayInjection()
-        PENETRATION_CONNECTIONS.RandomDelay = RunService.Heartbeat:Connect(function()
-            -- Randomize execution timing
-            if math.random(1, 100) > 70 then
-                pcall(function()
-                    -- Modify values with random timing
-                    for _, obj in pairs(LocalPlayer.Character:GetDescendants()) do
-                        if obj:IsA("NumberValue") and obj.Name:lower():find("damage") then
-                            obj.Value = BASE_DAMAGE * math.random(DAMAGE_MULTIPLIER - 5, DAMAGE_MULTIPLIER + 5)
-                        end
-                    end
-                end)
             end
         end)
-    end
+    end)
     
-    -- Method 3B: Stealth Packet Injection
-    local function StealthPacketInjection()
-        local lastInjection = tick()
-        
-        PENETRATION_CONNECTIONS.Stealth = RunService.Heartbeat:Connect(function()
-            if tick() - lastInjection > 0.5 then  -- Inject every 0.5 seconds
-                lastInjection = tick()
-                pcall(function()
-                    -- Stealthy packet injection
-                    game:GetService("ReplicatedStorage"):FireServer(
-                        "PlayerHit",
-                        LocalPlayer,
-                        BASE_DAMAGE * DAMAGE_MULTIPLIER,
-                        "Head"
-                    )
-                end)
-            end
-        end)
-    end
+    -- 3. Simpan cleanup function
+    ActiveConnections.CleanupRemotes = cleanupRemotes
     
-    RandomDelayInjection()
-    StealthPacketInjection()
-    return true
-end
-
--- ============================================
--- LEVEL 4: DIRECT SERVER PENETRATION
--- ============================================
-local function DirectServerPenetration()
-    -- Method 4A: Force Server Update
-    local function ForceServerUpdate()
-        PENETRATION_CONNECTIONS.ForceUpdate = RunService.Heartbeat:Connect(function()
-            pcall(function()
-                -- Force update player stats
-                if LocalPlayer.Character then
-                    local stats = LocalPlayer.Character:FindFirstChild("Stats")
-                    if stats then
-                        for _, stat in pairs(stats:GetChildren()) do
-                            if stat:IsA("NumberValue") and stat.Name:lower():find("damage") then
-                                stat.Value = BASE_DAMAGE * DAMAGE_MULTIPLIER
-                            end
-                        end
-                    end
-                end
-                
-                -- Force update opponent health
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character then
-                        local humanoid = player.Character:FindFirstChild("Humanoid")
-                        if humanoid then
-                            -- Gradual health reduction (less detectable)
-                            humanoid.Health = humanoid.Health - (BASE_DAMAGE / 10)
-                        end
-                    end
-                end
-            end)
-        end)
-    end
+    print("[LIGHT DAMAGE] ✅ Activated successfully")
     
-    -- Method 4B: Server Event Trigger
-    local function TriggerServerEvents()
-        local events = {
-            "DamageEvent",
-            "HitEvent", 
-            "AttackEvent",
-            "CombatEvent",
-            "PunchEvent"
-        }
-        
-        for _, eventName in pairs(events) do
-            pcall(function()
-                local event = game:GetService("ReplicatedStorage"):FindFirstChild(eventName)
-                if event then
-                    -- Trigger with high damage
-                    event:FireServer(BASE_DAMAGE * DAMAGE_MULTIPLIER)
-                end
-            end)
-        end
-    end
-    
-    ForceServerUpdate()
-    spawn(TriggerServerEvents)
-    return true
-end
-
--- ============================================
--- MAIN PENETRATION FUNCTION
--- ============================================
-local function ActivatePenetration()
-    if PENETRATION_ACTIVE then return end
-    
-    PENETRATION_ACTIVE = true
-    DamageToggle.Text = "🟢 DAMAGE: ON"
-    DamageToggle.BackgroundColor3 = Color3.fromRGB(40, 220, 40)
-    StatusLabel.Text = "⚡ PENETRATION ACTIVE"
-    StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 40)
-    
-    print("========================================")
-    print("🔥 SERVER PENETRATION INITIATED")
-    print("========================================")
-    print("Level 1: Packet Signature Spoofing...")
-    local level1 = SpoofPacketSignature()
-    print("Level 1: " .. (level1 and "✅ SUCCESS" or "❌ FAILED"))
-    
-    print("Level 2: Server Validation Bypass...")
-    local level2 = BypassServerValidation()
-    print("Level 2: " .. (level2 and "✅ SUCCESS" or "❌ FAILED"))
-    
-    print("Level 3: Anti-Cheat Evasion...")
-    local level3 = EvadeAntiCheat()
-    print("Level 3: " .. (level3 and "✅ SUCCESS" or "❌ FAILED"))
-    
-    print("Level 4: Direct Server Penetration...")
-    local level4 = DirectServerPenetration()
-    print("Level 4: " .. (level4 and "✅ SUCCESS" or "❌ FAILED"))
-    
-    print("========================================")
-    print("PENETRATION SUCCESS RATE: " .. 
-          (level1 and level2 and level3 and level4 and "HIGH" or "MEDIUM"))
-    print("Damage: " .. BASE_DAMAGE .. " × " .. DAMAGE_MULTIPLIER .. " = " .. 
-          BASE_DAMAGE * DAMAGE_MULTIPLIER)
-    print("========================================")
-    
-    -- Notification
+    -- Notifikasi ringan
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "PENETRATION ACTIVE",
-        Text = "Server penetration successful",
-        Duration = 3
+        Title = "DAMAGE ON",
+        Text = "Light damage activated",
+        Duration = 2
     })
 end
 
-local function DeactivatePenetration()
-    if not PENETRATION_ACTIVE then return end
+local function DisableLightDamage()
+    if not DamageActive then return end
     
-    PENETRATION_ACTIVE = false
-    DamageToggle.Text = "🔴 DAMAGE: OFF"
-    DamageToggle.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
-    StatusLabel.Text = "🟢 SYSTEM READY"
-    StatusLabel.TextColor3 = Color3.fromRGB(40, 255, 40)
+    DamageActive = false
+    DamageBtn.Text = "⚡ DAMAGE: OFF"
+    DamageBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+    StatusLabel.Text = "🟢 READY"
+    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    LogoBtn.Text = "🔴"
+    LogoBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
     
-    -- Disconnect all connections
-    for _, connection in pairs(PENETRATION_CONNECTIONS) do
-        connection:Disconnect()
+    print("[LIGHT DAMAGE] Disabling...")
+    
+    -- Matikan semua connections
+    for _, connection in pairs(ActiveConnections) do
+        if type(connection) == "function" then
+            connection() -- Jalankan cleanup function
+        elseif typeof(connection) == "RBXScriptConnection" then
+            connection:Disconnect()
+        end
     end
-    PENETRATION_CONNECTIONS = {}
+    ActiveConnections = {}
     
-    print("[PENETRATION] All systems deactivated")
+    print("[LIGHT DAMAGE] ✅ Disabled")
     
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "PENETRATION OFF",
-        Text = "All systems deactivated",
+        Title = "DAMAGE OFF",
+        Text = "Light damage disabled",
         Duration = 2
     })
 end
@@ -406,37 +265,78 @@ end
 -- ============================================
 -- UI CONTROLS
 -- ============================================
-DamageToggle.MouseButton1Click:Connect(function()
-    if PENETRATION_ACTIVE then
-        DeactivatePenetration()
+local UIVisible = false
+
+-- Toggle UI dengan logo
+LogoBtn.MouseButton1Click:Connect(function()
+    UIVisible = not UIVisible
+    MainPanel.Visible = UIVisible
+    
+    if UIVisible then
+        LogoBtn.Text = "▼"
     else
-        ActivatePenetration()
+        LogoBtn.Text = DamageActive and "🟢" or "🔴"
     end
     
-    -- Button animation
-    DamageToggle.Size = UDim2.new(0.78, 0, 0, 58)
+    -- Animasi kecil
+    LogoBtn.Size = UDim2.new(0, 45, 0, 45)
     wait(0.05)
-    DamageToggle.Size = UDim2.new(0.8, 0, 0, 60)
+    LogoBtn.Size = UDim2.new(0, 50, 0, 50)
+end)
+
+-- Toggle Damage
+DamageBtn.MouseButton1Click:Connect(function()
+    if DamageActive then
+        DisableLightDamage()
+    else
+        EnableLightDamage()
+    end
+    
+    -- Animasi tombol
+    DamageBtn.Size = UDim2.new(0.82, 0, 0, 48)
+    wait(0.06)
+    DamageBtn.Size = UDim2.new(0.85, 0, 0, 50)
+end)
+
+-- Close UI jika klik di luar
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input)
+    if UIVisible and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        local mousePos = UserInputService:GetMouseLocation()
+        local panelPos = MainPanel.AbsolutePosition
+        local panelSize = MainPanel.AbsoluteSize
+        
+        -- Cek jika klik di luar panel
+        if mousePos.X < panelPos.X or mousePos.X > panelPos.X + panelSize.X or
+           mousePos.Y < panelPos.Y or mousePos.Y > panelPos.Y + panelSize.Y then
+            UIVisible = false
+            MainPanel.Visible = false
+            LogoBtn.Text = DamageActive and "🟢" or "🔴"
+        end
+    end
 end)
 
 -- ============================================
 -- INITIALIZATION
 -- ============================================
 print("========================================")
-print("SERVER PENETRATION DAMAGE HACK v3.0")
+print("LIGHT DAMAGE HACK LOADED")
+print("By: Mikaa")
 print("========================================")
-print("Owner: [ENCRYPTED]")
-print("Damage: " .. BASE_DAMAGE .. " × " .. DAMAGE_MULTIPLIER .. "x")
-print("Total: " .. BASE_DAMAGE * DAMAGE_MULTIPLIER)
+print("Damage Settings:")
+print("  Base Damage: " .. BASE_DAMAGE)
+print("  Multiplier: " .. DAMAGE_MULTIPLIER .. "x")
+print("  Total Damage: " .. (BASE_DAMAGE * DAMAGE_MULTIPLIER))
+print("  Packet Delay: " .. PACKET_DELAY .. "s")
 print("========================================")
-print("Click DAMAGE button to activate")
-print("4-Level penetration system ready")
+print("Click 🔴 logo to open menu")
+print("Light & efficient - No FPS drop")
 print("========================================")
 
--- Initial notification
+-- Notifikasi awal
 wait(1)
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "SYSTEM READY",
-    Text = "Penetration hack loaded",
+    Title = "READY",
+    Text = "Light Damage Hack Loaded",
     Duration = 2
 })
