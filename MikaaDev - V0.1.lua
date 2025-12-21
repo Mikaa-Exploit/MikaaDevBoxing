@@ -34,6 +34,7 @@ local targetJump = MIN_JUMP
 local targetFly = 0
 local currentWalk = MIN_WALK
 local currentJump = MIN_JUMP
+local flySmooth = Vector3.zero
 
 local speedOn = false
 local jumpOn = false
@@ -52,6 +53,7 @@ local function forceDisableAll()
     waterOn = false
 
     targetFly = 0
+    flySmooth = Vector3.zero
 
     if hum then
         hum.WalkSpeed = MIN_WALK
@@ -252,7 +254,8 @@ if flyOn and bodyGyro and bodyVelocity and hum then
         -- vertical ikut kamera tapi lembut (ANDROID & IOS SAMA)
         vel += Vector3.new(0, cf.LookVector.Y * flySpeed * 0.85, 0)
 
-        bodyVelocity.Velocity = vel
+        flySmooth += (vel - flySmooth) * 0.18
+        bodyVelocity.Velocity = flySmooth
     else
         -- idle hover lembut
         bodyVelocity.Velocity = Vector3.new(0, 0, 0)
