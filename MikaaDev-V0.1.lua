@@ -1,5 +1,5 @@
 -- MikaaDev-V0.1
--- Simple Mobile | Android & iOS
+-- Mobile Only
 -- Author: Mikaa
 
 local Players = game:GetService("Players")
