@@ -1,18 +1,15 @@
--- PERFECT REAL-TIME PING & FPS DISPLAY
--- BIG TEXT, SMALL BOX
+-- PING MIKAA V0.1
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local StatsService = game:GetService("Stats")
 
--- ===== SMALL BOX WITH BIG TEXT =====
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MikaaDev_Stats"
 screenGui.Parent = game:GetService("CoreGui")
 
--- Frame tetap kecil, hanya text yang besar
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 150, 0, 80) -- Tetap kecil
+mainFrame.Size = UDim2.new(0, 150, 0, 80)
 mainFrame.Position = UDim2.new(0.02, 0, 0.02, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 mainFrame.BackgroundTransparency = 0.25
@@ -22,31 +19,28 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0.1, 0)
 corner.Parent = mainFrame
 
--- Title Bar (kecil)
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 24) -- Tetap kecil
+titleBar.Size = UDim2.new(1, 0, 0, 24)
 titleBar.BackgroundTransparency = 1
 titleBar.Parent = mainFrame
 
--- Title text normal
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -28, 1, 0)
 title.BackgroundTransparency = 1
-title.Text = "@MikaaDev"
+title.Text = "MikaaDev"
 title.TextColor3 = Color3.fromRGB(0, 180, 255)
-title.TextSize = 12 -- Normal size
+title.TextSize = 18 
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = titleBar
 
--- Close Button kecil
 local closeButton = Instance.new("TextButton")
 closeButton.Name = "CloseButton"
 closeButton.Size = UDim2.new(0, 20, 0, 20)
 closeButton.Position = UDim2.new(1, -24, 0.5, -10)
 closeButton.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
 closeButton.BackgroundTransparency = 0.3
-closeButton.Text = "✕"
+closeButton.Text = "X"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.TextSize = 14
 closeButton.Font = Enum.Font.GothamBold
@@ -70,29 +64,27 @@ end)
 
 closeButton.Parent = titleBar
 
--- ===== PING DISPLAY - TEXT BESAR =====
 local pingText = Instance.new("TextLabel")
 pingText.Name = "PingDisplay"
-pingText.Size = UDim2.new(1, -10, 0, 28) -- Tetap kecil area-nya
+pingText.Size = UDim2.new(1, -10, 0, 28)
 pingText.Position = UDim2.new(0, 5, 0, 30)
 pingText.BackgroundTransparency = 1
 pingText.Text = "Ping: --ms"
 pingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-pingText.TextSize = 18 -- BESAR! Hanya text size yang besar
+pingText.TextSize = 18
 pingText.Font = Enum.Font.GothamBold
 pingText.TextXAlignment = Enum.TextXAlignment.Left
 pingText.TextYAlignment = Enum.TextYAlignment.Top
 pingText.Parent = mainFrame
 
--- ===== FPS DISPLAY - TEXT BESAR =====
 local fpsText = Instance.new("TextLabel")
 fpsText.Name = "FPSDisplay"
-fpsText.Size = UDim2.new(1, -10, 0, 28) -- Tetap kecil area-nya
+fpsText.Size = UDim2.new(1, -10, 0, 28)
 fpsText.Position = UDim2.new(0, 5, 0, 58)
 fpsText.BackgroundTransparency = 1
 fpsText.Text = "FPS: --"
 fpsText.TextColor3 = Color3.fromRGB(255, 255, 255)
-fpsText.TextSize = 18 -- BESAR! Hanya text size yang besar
+fpsText.TextSize = 18 
 fpsText.Font = Enum.Font.GothamBold
 fpsText.TextXAlignment = Enum.TextXAlignment.Left
 fpsText.TextYAlignment = Enum.TextYAlignment.Top
@@ -100,7 +92,6 @@ fpsText.Parent = mainFrame
 
 mainFrame.Parent = screenGui
 
--- ===== DRAG FUNCTION =====
 local dragging = false
 local dragStart, frameStart
 
@@ -130,9 +121,8 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- ===== ULTIMATE PING GETTER =====
 local function GetExactRobloxPing()
-    -- Direct method - sama dengan Shift+F3
+
     local success, ping = pcall(function()
         return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
     end)
@@ -144,7 +134,6 @@ local function GetExactRobloxPing()
     return 0
 end
 
--- ===== ULTIMATE FPS CALCULATOR =====
 local frameTimes = {}
 local MAX_FRAMES = 120
 
@@ -152,12 +141,11 @@ local function GetExactRobloxFPS()
     local currentTime = tick()
     table.insert(frameTimes, currentTime)
     
-    -- Keep only recent frames
     while #frameTimes > MAX_FRAMES do
         table.remove(frameTimes, 1)
     end
     
-    -- Calculate FPS based on last 1 second
+
     local oneSecondAgo = currentTime - 1.0
     local framesInLastSecond = 0
     
@@ -172,22 +160,18 @@ local function GetExactRobloxFPS()
     return framesInLastSecond
 end
 
--- ===== REAL-TIME UPDATE =====
 local currentPing = 0
 local currentFPS = 0
 local lastPingUpdate = 0
 local lastFPS = 0
 
--- Update FPS EVERY FRAME (paling real-time)
 RunService.RenderStepped:Connect(function()
-    -- Get FPS
+    
     currentFPS = GetExactRobloxFPS()
     
-    -- Only update if changed
     if currentFPS ~= lastFPS then
         fpsText.Text = "FPS: " .. currentFPS
         
-        -- Color coding
         if currentFPS >= 60 then
             fpsText.TextColor3 = Color3.fromRGB(0, 255, 0)
         elseif currentFPS >= 50 then
@@ -206,11 +190,9 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Update Ping frequently
 RunService.Heartbeat:Connect(function()
     local now = tick()
     
-    -- Update ping every 0.1 seconds (10x per second)
     if now - lastPingUpdate >= 0.1 then
         local newPing = GetExactRobloxPing()
         
@@ -219,7 +201,6 @@ RunService.Heartbeat:Connect(function()
             
             pingText.Text = "Ping: " .. currentPing .. "ms"
             
-            -- Color coding
             if currentPing < 30 then
                 pingText.TextColor3 = Color3.fromRGB(0, 255, 0)
             elseif currentPing < 60 then
@@ -239,7 +220,6 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Verification
 spawn(function()
     wait(2)
     
@@ -247,7 +227,7 @@ spawn(function()
     
     while screenGui and screenGui.Parent do
         wait(5)
-        -- Silent verification
+    
     end
 end)
 
